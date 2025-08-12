@@ -8,7 +8,8 @@ from selenium.common.exceptions import (
     NoSuchElementException,
     TimeoutException,
     ElementClickInterceptedException,
-    WebDriverException
+    WebDriverException,
+    ElementNotInteractableException
 )
 from time import sleep
 from dotenv import load_dotenv
@@ -44,23 +45,24 @@ class InternetSpeedTwitterBot:
             go_button = self.wait.until(ec.element_to_be_clickable((By.CSS_SELECTOR, 'span.start-text')))
             go_button.click()
             sleep(40)
-            # back_to_results = self.wait.until(
-            #     ec.element_to_be_clickable((By.XPATH, '//*[@id="container"]/div[1]/div[3]/div/div/div/div['
-            #                                           '2]/div[2]/div/div[4]/div/div[8]/div/div/div[2]/a')))
-            # back_to_results.click()
+            try:
+                pop_up_window = self.driver.find_element(By.XPATH,
+                                                           '//*[@id="container"]/div[1]/div[3]/div/div/div/div['
+                                                           '2]/div[2]/div/div[4]/div/div[8]/div/div/div[2]/a')
+                pop_up_window.click()
+            except ElementNotInteractableException:
+                self.speed_down = self.driver.find_element(By.XPATH,
+                                                           '//*[@id="container"]/div[1]/div[3]/div/div/div/div[2]/div['
+                                                           '2]/div/div[4]/div/div[3]/div/div/div[2]/div[1]/div['
+                                                           '1]/div/div[2]/span').text
+                self.speed_up = self.driver.find_element(By.XPATH, '//*[@id="container"]/div[1]/div[3]/div/div/div/div['
+                                                                   '2]/div['
+                                                                   '2]/div/div[4]/div/div[3]/div/div/div[2]/div[1]/div['
+                                                                   '2]/div/div['
+                                                                   '2]/span').text
 
-            self.speed_down = self.driver.find_element(By.XPATH,
-                                                       '//*[@id="container"]/div[1]/div[3]/div/div/div/div[2]/div['
-                                                       '2]/div/div[4]/div/div[3]/div/div/div[2]/div[1]/div['
-                                                       '1]/div/div[2]/span').text
-            self.speed_up = self.driver.find_element(By.XPATH, '//*[@id="container"]/div[1]/div[3]/div/div/div/div['
-                                                               '2]/div['
-                                                               '2]/div/div[4]/div/div[3]/div/div/div[2]/div[1]/div['
-                                                               '2]/div/div['
-                                                               '2]/span').text
-
-            print(f"down: {self.speed_down}")
-            print(f"up: {self.speed_up}")
+                print(f"down: {self.speed_down}")
+                print(f"up: {self.speed_up}")
         except (TimeoutException, NoSuchElementException, WebDriverException) as e:
             print(f"Failed to measure internet speed: {e}")
 
