@@ -10,6 +10,7 @@ from selenium.common.exceptions import (
     ElementClickInterceptedException,
     WebDriverException
 )
+from time import sleep
 from dotenv import load_dotenv
 import os
 
@@ -42,10 +43,12 @@ class InternetSpeedTwitterBot:
             self.driver.get("https://www.speedtest.net/")
             go_button = self.wait.until(ec.element_to_be_clickable((By.CSS_SELECTOR, 'span.start-text')))
             go_button.click()
-            back_to_results = self.wait.until(
-                ec.element_to_be_clickable((By.XPATH, '//*[@id="container"]/div[1]/div[3]/div/div/div/div['
-                                                      '2]/div[2]/div/div[4]/div/div[8]/div/div/div[2]/a')))
-            back_to_results.click()
+            sleep(40)
+            # back_to_results = self.wait.until(
+            #     ec.element_to_be_clickable((By.XPATH, '//*[@id="container"]/div[1]/div[3]/div/div/div/div['
+            #                                           '2]/div[2]/div/div[4]/div/div[8]/div/div/div[2]/a')))
+            # back_to_results.click()
+
             self.speed_down = self.driver.find_element(By.XPATH,
                                                        '//*[@id="container"]/div[1]/div[3]/div/div/div/div[2]/div['
                                                        '2]/div/div[4]/div/div[3]/div/div/div[2]/div[1]/div['
