@@ -8,8 +8,10 @@ from selenium.common.exceptions import (
     NoSuchElementException,
     TimeoutException,
     ElementClickInterceptedException,
-    WebDriverException
+    WebDriverException,
+    ElementNotInteractableException
 )
+from time import sleep
 from dotenv import load_dotenv
 import os
 
@@ -41,23 +43,18 @@ class InternetSpeedTwitterBot:
         try:
             self.driver.get("https://www.speedtest.net/")
             go_button = self.wait.until(ec.element_to_be_clickable((By.CSS_SELECTOR, 'span.start-text')))
+            sleep(5)
             go_button.click()
-            back_to_results = self.wait.until(
-                ec.element_to_be_clickable((By.XPATH, '//*[@id="container"]/div[1]/div[3]/div/div/div/div['
-                                                      '2]/div[2]/div/div[4]/div/div[8]/div/div/div[2]/a')))
-            back_to_results.click()
-            self.speed_down = self.driver.find_element(By.XPATH,
-                                                       '//*[@id="container"]/div[1]/div[3]/div/div/div/div[2]/div['
-                                                       '2]/div/div[4]/div/div[3]/div/div/div[2]/div[1]/div['
-                                                       '1]/div/div[2]/span').text
-            self.speed_up = self.driver.find_element(By.XPATH, '//*[@id="container"]/div[1]/div[3]/div/div/div/div['
-                                                               '2]/div['
-                                                               '2]/div/div[4]/div/div[3]/div/div/div[2]/div[1]/div['
-                                                               '2]/div/div['
-                                                               '2]/span').text
+            self.close_popup_if_present()
+            sleep(2)
+            self.speed_down = self.driver.find_element(By.CLASS_NAME,
+                                                       'download-speed').text
+            self.speed_up = self.driver.find_element(By.CLASS_NAME, 'upload-speed').text
 
             print(f"down: {self.speed_down}")
             print(f"up: {self.speed_up}")
+            self.close_popup_if_present()
+
         except (TimeoutException, NoSuchElementException, WebDriverException) as e:
             print(f"Failed to measure internet speed: {e}")
 
@@ -71,7 +68,7 @@ class InternetSpeedTwitterBot:
             safe_bar.click()
             safe_bar.send_keys(NAME, Keys.ENTER)
             password = self.wait.until(
-                ec.element_to_be_clickable((By.CSS_SELECTOR, 'input[autocomplete="current-password"]')))
+                ec.element_to_be_clickable((By.CSS_SELECTOR, 'input[name="password"]')))
             password.send_keys(TWITTER_PASSWORD, Keys.ENTER)
             text_place_holder = self.wait.until(
                 ec.element_to_be_clickable((By.CSS_SELECTOR, 'div[class="public-DraftStyleDefault-block '
@@ -89,6 +86,18 @@ class InternetSpeedTwitterBot:
 
         except (NoSuchElementException, TimeoutException, ElementClickInterceptedException, WebDriverException) as e:
             print(f"Failed to tweet: {e}.")
+
+    def close_popup_if_present(self):
+        try:
+            pop_up_window = self.wait.until(ec.element_to_be_clickable((By.XPATH,
+                                                                        '//*[@id="container"]/div[1]/div['
+                                                                        '3]/div/div/div/div['
+                                                                        '2]/div[2]/div/div[4]/div/div['
+                                                                        '8]/div/div/div[2]/a')))
+            pop_up_window.click()
+            print("Popup closed.")
+        except TimeoutException:
+            print("No popup appeared.")
 
     def close(self):
         self.driver.quit()
