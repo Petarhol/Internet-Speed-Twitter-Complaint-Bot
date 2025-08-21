@@ -4,12 +4,8 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
-from selenium.common.exceptions import (
-    NoSuchElementException,
-    TimeoutException,
-    ElementClickInterceptedException,
-    WebDriverException
-)
+import selenium.common.exceptions
+from time import sleep
 from dotenv import load_dotenv
 import os
 
@@ -41,24 +37,21 @@ class InternetSpeedTwitterBot:
         try:
             self.driver.get("https://www.speedtest.net/")
             go_button = self.wait.until(ec.element_to_be_clickable((By.CSS_SELECTOR, 'span.start-text')))
+            sleep(5)
             go_button.click()
-            back_to_results = self.wait.until(
-                ec.element_to_be_clickable((By.XPATH, '//*[@id="container"]/div[1]/div[3]/div/div/div/div['
-                                                      '2]/div[2]/div/div[4]/div/div[8]/div/div/div[2]/a')))
-            back_to_results.click()
-            self.speed_down = self.driver.find_element(By.XPATH,
-                                                       '//*[@id="container"]/div[1]/div[3]/div/div/div/div[2]/div['
-                                                       '2]/div/div[4]/div/div[3]/div/div/div[2]/div[1]/div['
-                                                       '1]/div/div[2]/span').text
-            self.speed_up = self.driver.find_element(By.XPATH, '//*[@id="container"]/div[1]/div[3]/div/div/div/div['
-                                                               '2]/div['
-                                                               '2]/div/div[4]/div/div[3]/div/div/div[2]/div[1]/div['
-                                                               '2]/div/div['
-                                                               '2]/span').text
+            self.close_popup_if_present()
+            sleep(2)
+            self.speed_down = self.driver.find_element(By.CLASS_NAME,
+                                                       'download-speed').text
+            self.speed_up = self.driver.find_element(By.CLASS_NAME, 'upload-speed').text
 
             print(f"down: {self.speed_down}")
             print(f"up: {self.speed_up}")
-        except (TimeoutException, NoSuchElementException, WebDriverException) as e:
+            self.close_popup_if_present()
+
+        except (selenium.common.exceptions.TimeoutException,
+                selenium.common.exceptions.NoSuchElementException,
+                selenium.common.exceptions.WebDriverException) as e:
             print(f"Failed to measure internet speed: {e}")
 
     def tweet_at_provider(self):
@@ -71,7 +64,7 @@ class InternetSpeedTwitterBot:
             safe_bar.click()
             safe_bar.send_keys(NAME, Keys.ENTER)
             password = self.wait.until(
-                ec.element_to_be_clickable((By.CSS_SELECTOR, 'input[autocomplete="current-password"]')))
+                ec.element_to_be_clickable((By.CSS_SELECTOR, 'input[name="password"]')))
             password.send_keys(TWITTER_PASSWORD, Keys.ENTER)
             text_place_holder = self.wait.until(
                 ec.element_to_be_clickable((By.CSS_SELECTOR, 'div[class="public-DraftStyleDefault-block '
@@ -87,8 +80,23 @@ class InternetSpeedTwitterBot:
                                                                                 '2]/div/div/div/button/div/span/span')))
             post_button.click()
 
-        except (NoSuchElementException, TimeoutException, ElementClickInterceptedException, WebDriverException) as e:
+        except (selenium.common.exceptions.NoSuchElementException,
+                selenium.common.exceptions.TimeoutException,
+                selenium.common.exceptions.ElementClickInterceptedException,
+                selenium.common.exceptions.WebDriverException) as e:
             print(f"Failed to tweet: {e}.")
+
+    def close_popup_if_present(self):
+        try:
+            pop_up_window = self.wait.until(ec.element_to_be_clickable((By.XPATH,
+                                                                        '//*[@id="container"]/div[1]/div['
+                                                                        '3]/div/div/div/div['
+                                                                        '2]/div[2]/div/div[4]/div/div['
+                                                                        '8]/div/div/div[2]/a')))
+            pop_up_window.click()
+            print("Popup closed.")
+        except selenium.common.exceptions.TimeoutException:
+            print("No popup appeared.")
 
     def close(self):
         self.driver.quit()
