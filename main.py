@@ -8,8 +8,7 @@ from selenium.common.exceptions import (
     NoSuchElementException,
     TimeoutException,
     ElementClickInterceptedException,
-    WebDriverException,
-    ElementNotInteractableException
+    WebDriverException
 )
 from time import sleep
 from dotenv import load_dotenv
